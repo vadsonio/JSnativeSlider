@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Slider</title>
+</head>
+<body>
+
+	<div id="sliderHere">
+		<div>
+			<img src="https://via.placeholder.com/500x300?text=1" alt="">
+		</div>
+		<div>
+			<img src="https://via.placeholder.com/500x300?text=2" alt="">
+		</div>
+		<div>
+			<img src="https://via.placeholder.com/500x300?text=3" alt="">
+		</div>
+		<div>
+			<img src="https://via.placeholder.com/500x300?text=4" alt="">
+		</div>
+		<div>
+			<img src="https://via.placeholder.com/500x300?text=5" alt="">
+		</div>
+		<div>
+			<img src="https://via.placeholder.com/500x300?text=6" alt="">
+		</div>
+		<div>
+			<img src="https://via.placeholder.com/500x300?text=7" alt="">
+		</div>
+	</div>
+
+	<script>
+
+		function Slider(userSettings){
+			this.defaults = {
+				visible: 3,
+				arrows: true,
+				marginRight: 10
+			}
+			this.SETTINGS = Object.assign(this.defaults, userSettings);
+
+			this.slidesLength = 0;
+			this.swipeWidth = 0;
+			this.swipePosition = 0;
+			this.lastActiveIndex = 0;
+
+			this.sliderMain = document.getElementById("sliderHere");
+
+			this.init();
+		}
+
+		Slider.prototype.init = function(){
+			console.log("%cSlider initing...", "color: #F7C600")
+			this.wrapperCreate();
+			this.countSlides();
+			this.countItemsWidths();
+			this.scrollSwipeInit();
+			
+			let arrowsStatus = this.SETTINGS.arrows;
+			if(arrowsStatus){
+				this.showArrows();
+				this.addArrowsFunctionality();
+			}
+			this.createCSS(arrowsStatus);
+			console.log("%cIniting DONE!", "color: #4DC274")
+		}
+		Slider.prototype.wrapperCreate = function(){
+			let parentBlockElements = this.sliderMain.innerHTML,
+				sliderWrapper = `<div id='sliderWrapper'>${parentBlockElements}</div>`;
+			document.getElementById("sliderHere").innerHTML = sliderWrapper;
+			console.log("%cWrap creating.....DONE", "color: #7C7C7C")
+		}
+		Slider.prototype.countSlides = function(){
+			let wrapper  = document.querySelector('#sliderWrapper'),
+				sceneW = wrapper.getBoundingClientRect().width;
+				items = wrapper.querySelectorAll('div');
+
+			sceneW < 600 ? 
+				this.SETTINGS.visible > 2 ? 
+					this.SETTINGS.visible = 2 
+					: "" 
+				: ""
+			
+			if(this.SETTINGS.visible > items.length) this.SETTINGS.visible = items.length
+			this.slidesLength = items.length;
+			this.lastActiveIndex = this.SETTINGS.visible;
+
+			console.log(`%cSlides length.....${this.slidesLength}`, "color: #7C7C7C")
+		}
+		Slider.prototype.countItemsWidths = function(){
+			let wrapper  = document.querySelector('#sliderWrapper'),
+				sceneW = wrapper.getBoundingClientRect().width;
+
+			let itemWidth = sceneW / this.SETTINGS.visible;
+
+			let items = wrapper.querySelectorAll('div');
+			items.forEach(item => item.style.width = `calc(${itemWidth}px - ${this.SETTINGS.marginRight}px)`);
+			this.swipeWidth = itemWidth;
+			console.log(`%cScene width.....${sceneW}`, "color: #7C7C7C")
+			console.log(`%cEach item width.....${itemWidth}`, "color: #7C7C7C")
+		}
+		Slider.prototype.showArrows = function(){
+			let scene  = document.querySelector('#sliderHere'),
+				arrowPrev = document.createElement("div"),
+				arrowNext = document.createElement("div");
+
+			[arrowPrev, arrowNext].forEach((item, index) => {
+				item.classList.add('arrow');
+				index === 0 ? item.classList.add('arrow-prev') : item.classList.add('arrow-next')
+			})
+
+			scene.prepend(arrowPrev);
+			scene.append(arrowNext);
+		}
+		Slider.prototype.createCSS = function(arrowsStatus){
+			let sceneCSS = `#sliderHere{position:relative;overflow:hidden;}\n#sliderWrapper{display:flex;position:relative;transition:.3s;}\n#sliderWrapper>div{flex-grow:0;flex-shrink:0;margin-right: ${this.SETTINGS.marginRight/2}px;margin-left: ${this.SETTINGS.marginRight/2}px}\n#sliderWrapper>div img{width:100%;height: auto}`,
+				arrowsCSS = `\n.arrow{width: 40px;height: 40px;position: absolute;top: 50%;transform: translateY(-50%);background: transparent;border-radius: 50%;border: 3px solid #fff;z-index:1;cursor:pointer;}\n.arrow-prev{left: ${this.SETTINGS.marginRight/2+5}px;}\n.arrow.arrow-prev:after{position: absolute;top: 50%;left: 55%;transform: translate(-50%, -50%) rotate(45deg);content: "";display: inline-block;width: 10px;height: 10px;border-left: 3px solid #fff;border-bottom: 3px solid #fff;}\n.arrow-next{right: ${this.SETTINGS.marginRight/2+5}px;}\n.arrow.arrow-next:after{position: absolute;top: 50%;left: 45%;transform: translate(-50%, -50%) rotate(-135deg);content: "";display: inline-block;width: 10px;height: 10px;border-left: 3px solid #fff;border-bottom: 3px solid #fff;}\n.arrow.disabled{visibility: hidden;}`,
+				mainCSS = '';
+
+			arrowsStatus ? mainCSS = `${sceneCSS}${arrowsCSS}` : mainCSS = sceneCSS;
+				
+			let head = document.head || document.getElementsByTagName('head')[0],
+				style = document.createElement('style');
+
+			head.appendChild(style);
+			style.type = 'text/css';
+
+			if (style.styleSheet){
+			  // This is required for IE8 and below.
+			  style.styleSheet.cssText = mainCSS;
+			} else {
+			  style.appendChild(document.createTextNode(mainCSS));
+			}
+		}
+		Slider.prototype.prevSlide = function(){
+			let arrowPrev = document.querySelector('.arrow-prev'),
+				arrowNext = document.querySelector('.arrow-next'),
+				swipeW = this.swipeWidth,
+				scene = document.querySelector('#sliderWrapper');
+
+			if(this.lastActiveIndex === this.SETTINGS.visible) return
+			this.lastActiveIndex -= 1;
+			this.swipePosition += swipeW;
+			scene.style.transform = `translateX(${this.swipePosition}px)`;
+
+			this.SETTINGS.arrows ? this.arrowsStatus() : "";
+		}
+		Slider.prototype.nextSlide = function(){
+			let arrowPrev = document.querySelector('.arrow-prev'),
+				arrowNext = document.querySelector('.arrow-next'),
+				swipeW = this.swipeWidth,
+				scene = document.querySelector('#sliderWrapper');
+				
+			if(this.slidesLength === this.SETTINGS.visible) return
+			if(this.slidesLength === this.lastActiveIndex) return
+			this.lastActiveIndex += 1;
+			this.swipePosition -= swipeW;
+			scene.style.transform = `translateX(${this.swipePosition}px)`;
+
+			this.SETTINGS.arrows ? this.arrowsStatus() : "";
+		}
+		Slider.prototype.addArrowsFunctionality = function(){
+			let arrowPrev = document.querySelector('.arrow-prev'),
+				arrowNext = document.querySelector('.arrow-next');
+
+			document.querySelector('.arrow-prev').classList.add('disabled');
+			if(this.slidesLength === this.SETTINGS.visible){
+				document.querySelector('.arrow-next').classList.add('disabled');
+			}
+			arrowPrev.addEventListener('click', () => this.prevSlide());
+			arrowNext.addEventListener('click', () => this.nextSlide());
+		}
+		Slider.prototype.arrowsStatus =  function() {
+			if(this.lastActiveIndex - this.slidesLength === 0){
+				document.querySelector('.arrow-next').classList.add('disabled');
+			} else {
+				document.querySelector('.arrow-next').classList.remove('disabled');
+			}
+			if(this.lastActiveIndex - this.SETTINGS.visible === 0){
+				document.querySelector('.arrow-prev').classList.add('disabled');
+			} else {
+				document.querySelector('.arrow-prev').classList.remove('disabled');
+			}
+		}
+		Slider.prototype.scrollSwipeInit = function(){
+			let swipeW = this.swipeWidth,
+				scene = document.querySelector('#sliderWrapper');
+
+				scene.addEventListener('mouseenter', addScrollListener);
+				scene.addEventListener('mouseleave', removeScrollListener);
+
+			function addScrollListener(){
+				scene.addEventListener('wheel', throttle(event, fn, 200))
+			}
+			function removeScrollListener(){
+				scene.removeEventListener('wheel', throttle(event, fn, 200));
+				scene.removeEventListener('mouseenter', addScrollListener);
+			}
+
+			let fn = (all) =>{
+				let scrollDelta = all.deltaY;
+
+				if(scrollDelta > 0){
+					this.nextSlide();
+				} else {
+					this.prevSlide();
+				}
+			}
+
+			function throttle (event, callback, limit) {
+			    var waiting = false;                      
+			    return function () {                      
+			        if (!waiting) {                       
+			            callback.apply(this, arguments);  
+			            waiting = true;                   
+			            setTimeout(function () {          
+			                waiting = false;              
+			            }, limit);
+			        }
+			    }
+			}
+		}
+
+		let slider = new Slider({visible: 4, arrows: true, marginRight: 20});
+		
+	</script>
+</body>
+</html>
