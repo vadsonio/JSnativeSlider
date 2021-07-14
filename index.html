@@ -4,6 +4,76 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Slider</title>
+	<style>
+		.prev-arrow1{
+			position: absolute;
+    		top: 50%;
+    		transform: translateY(-50%) rotate(45deg);
+		    left: 15px;
+		    width: 8px;
+		    height: 8px;
+		    border-left: 3px solid #44D3E7;
+		    border-bottom: 3px solid #44D3E7;
+		    z-index: 2;
+		}
+		.prev-arrow2{
+			position: absolute;
+    		top: 50%;
+    		transform: translateY(-50%) rotate(45deg);
+		    left: 15px;
+		    width: 8px;
+		    height: 8px;
+		    border-left: 3px solid #44D3E7;
+		    border-bottom: 3px solid #44D3E7;
+		    z-index: 2;
+		}
+		.arrow:not(.disabled) .prev-arrow2{
+			animation: .3s fadeToRight forwards;
+			animation-delay: .5s;
+		}
+		@keyframes fadeToRight{
+			from {
+				left: 15px;
+			}
+			to{
+				left: 25px;
+			}
+		}
+		.next-arrow1{
+			position: absolute;
+    		top: 50%;
+    		transform: translateY(-50%) rotate(-135deg);
+		    right: 15px;
+		    width: 8px;
+		    height: 8px;
+		    border-left: 3px solid #44D3E7;
+		    border-bottom: 3px solid #44D3E7;
+		    z-index: 2;
+		}
+		.next-arrow2{
+			position: absolute;
+    		top: 50%;
+    		transform: translateY(-50%) rotate(-135deg);
+		    right: 15px;
+		    width: 8px;
+		    height: 8px;
+		    border-left: 3px solid #44D3E7;
+		    border-bottom: 3px solid #44D3E7;
+		    z-index: 2;
+		}
+		.arrow:not(.disabled) .next-arrow2{
+			animation: .3s fadeToLeft forwards;
+			animation-delay: .5s;
+		}
+		@keyframes fadeToLeft{
+			from {
+				right: 15px;
+			}
+			to{
+				right: 25px;
+			}
+		}
+	</style>	
 </head>
 <body>
 
@@ -106,6 +176,24 @@
 				arrowPrev = document.createElement("div"),
 				arrowNext = document.createElement("div");
 
+				let spanPrev = document.createElement("span");
+				spanPrev.classList.add("prev-arrow1");
+
+				let spanPrev2 = document.createElement("span");
+				spanPrev2.classList.add("prev-arrow2");
+
+				let spanNext = document.createElement("span");
+				spanNext.classList.add("next-arrow1");
+
+				let spanNext2 = document.createElement("span");
+				spanNext2.classList.add("next-arrow2");
+
+				arrowPrev.appendChild(spanPrev);
+				arrowPrev.appendChild(spanPrev2);
+
+				arrowNext.appendChild(spanNext);
+				arrowNext.appendChild(spanNext2);
+
 			[arrowPrev, arrowNext].forEach((item, index) => {
 				item.classList.add('arrow');
 				index === 0 ? item.classList.add('arrow-prev') : item.classList.add('arrow-next')
@@ -115,8 +203,8 @@
 			scene.append(arrowNext);
 		}
 		Slider.prototype.createCSS = function(arrowsStatus){
-			let sceneCSS = `#sliderHere{position:relative;overflow:hidden;}\n#sliderWrapper{display:flex;position:relative;transition:.3s;}\n#sliderWrapper>div{flex-grow:0;flex-shrink:0;margin-right: ${this.SETTINGS.marginRight/2}px;margin-left: ${this.SETTINGS.marginRight/2}px}\n#sliderWrapper>div img{width:100%;height: auto}`,
-				arrowsCSS = `\n.arrow{width: 40px;height: 40px;position: absolute;top: 50%;transform: translateY(-50%);background: transparent;border-radius: 50%;border: 3px solid #fff;z-index:1;cursor:pointer;}\n.arrow-prev{left: ${this.SETTINGS.marginRight/2+5}px;}\n.arrow.arrow-prev:after{position: absolute;top: 50%;left: 55%;transform: translate(-50%, -50%) rotate(45deg);content: "";display: inline-block;width: 10px;height: 10px;border-left: 3px solid #fff;border-bottom: 3px solid #fff;}\n.arrow-next{right: ${this.SETTINGS.marginRight/2+5}px;}\n.arrow.arrow-next:after{position: absolute;top: 50%;left: 45%;transform: translate(-50%, -50%) rotate(-135deg);content: "";display: inline-block;width: 10px;height: 10px;border-left: 3px solid #fff;border-bottom: 3px solid #fff;}\n.arrow.disabled{visibility: hidden;}`,
+			let sceneCSS = `#sliderHere{position:relative;overflow:hidden;background: #010103;padding: 5px 0;border: 5px solid #44D3E7;border-radius: 10px;box-sizing: border-box;}\n#sliderWrapper{display:flex;position:relative;transition:.3s;}\n#sliderWrapper>div{flex-grow:0;flex-shrink:0;margin-right: ${this.SETTINGS.marginRight/2}px;margin-left: ${this.SETTINGS.marginRight/2}px}\n#sliderWrapper>div img{width:100%;height: auto}`,
+				arrowsCSS = `\n.arrow{width: 70px;height: 40px;position: absolute;top: 50%;transform: translateY(-50%);background: transparent;border-radius: 3px;z-index: 1;cursor: pointer;overflow: hidden;}\n.arrow-prev{left: ${this.SETTINGS.marginRight/2+5}px;}\n.arrow.arrow-prev:after{position: absolute;top: 50%;left: 35px;transform: translate(-50%, -50%) rotate(45deg);content: "";display: inline-block;width: 200px;height: 60px;background: #F5F60A;}\n.arrow.arrow-prev:before {position: absolute;top: 50%;left: 35px;;transform: translate(-50%, -50%) rotate(45deg);content: "";display: inline-block;width: 200px;height: 62px;background: #44D3E7;}\n.arrow-next{right: ${this.SETTINGS.marginRight/2+5}px;}\n.arrow.arrow-next:after{position: absolute;top: 50%;left: 35px;transform: translate(-50%, -50%) rotate(-45deg);content: "";display: inline-block;width: 200px;height: 60px;background: #F5F60A;}\n.arrow.disabled{visibility: hidden;}.arrow.arrow-next:before {position: absolute;top: 50%;left: 35px;transform: translate(-50%, -50%) rotate(-45deg);content: "";display: inline-block;width: 200px;height: 62px;background: #44D3E7;}`,
 				mainCSS = '';
 
 			arrowsStatus ? mainCSS = `${sceneCSS}${arrowsCSS}` : mainCSS = sceneCSS;
