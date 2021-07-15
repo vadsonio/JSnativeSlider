@@ -73,6 +73,60 @@
 				right: 25px;
 			}
 		}
+		.dots-block{
+			position: absolute;
+			bottom: -5px;
+			left: 50%;
+			transform: translateX(-50%);
+			width: 200px;
+			height: 40px;
+			display: flex;
+		    align-items: center;
+		    justify-content: center;
+			background: #F5F60A;
+		}
+		.dots-block:before {
+		    content: "";
+		    display: inline-block;
+		    position: absolute;
+		    left: -40px;
+		    top: 0;
+		    width: 0;
+		    height: 0;
+		    border-style: solid;
+		    border-width: 0 0 40px 40px;
+		    border-color: transparent transparent #F5F60A transparent;
+		    z-index: 5;
+		}
+		.dots-block:after {
+		    content: "";
+		    display: inline-block;
+		    position: absolute;
+		    right: -40px;
+		    top: 0;
+		    width: 0;
+		    height: 0;
+		    border-style: solid;
+		    border-width: 40px 0 0 40px;
+		    border-color: transparent transparent transparent #F5F60A;
+		    z-index: 5;
+		}
+		span.dott-item {
+		    margin-right: 10px;
+		    display: inline-block;
+		    width: 10px;
+		    height: 10px;
+		    background: #333;
+		    transition: .3s;
+		}
+		span.dott-item:last-child{
+			margin-right: 0;
+		}
+		span.dott-item.active{
+			width: 40px;
+			border-radius: 4px;
+			background: #44D3E7;
+		}
 	</style>	
 </head>
 <body>
@@ -107,6 +161,7 @@
 			this.defaults = {
 				visible: 3,
 				arrows: true,
+				dots: true,
 				marginRight: 10
 			}
 			this.SETTINGS = Object.assign(this.defaults, userSettings);
@@ -117,6 +172,7 @@
 			this.lastActiveIndex = 0;
 
 			this.sliderMain = document.getElementById("sliderHere");
+			this.sliderWrapper = "";
 
 			this.init();
 		}
@@ -133,18 +189,21 @@
 				this.showArrows();
 				this.addArrowsFunctionality();
 			}
+
+			this.showDots();
 			this.createCSS(arrowsStatus);
 			console.log("%cIniting DONE!", "color: #4DC274")
 		}
 		Slider.prototype.wrapperCreate = function(){
 			let parentBlockElements = this.sliderMain.innerHTML,
 				sliderWrapper = `<div id='sliderWrapper'>${parentBlockElements}</div>`;
-			document.getElementById("sliderHere").innerHTML = sliderWrapper;
+			this.sliderMain.innerHTML = sliderWrapper;
+			this.sliderWrapper = document.querySelector('#sliderWrapper');
 			console.log("%cWrap creating.....DONE", "color: #7C7C7C")
 		}
 		Slider.prototype.countSlides = function(){
-			let wrapper  = document.querySelector('#sliderWrapper'),
-				sceneW = wrapper.getBoundingClientRect().width;
+			let wrapper  = this.sliderWrapper,
+				sceneW = wrapper.getBoundingClientRect().width,
 				items = wrapper.querySelectorAll('div');
 
 			sceneW < 600 ? 
@@ -160,7 +219,7 @@
 			console.log(`%cSlides length.....${this.slidesLength}`, "color: #7C7C7C")
 		}
 		Slider.prototype.countItemsWidths = function(){
-			let wrapper  = document.querySelector('#sliderWrapper'),
+			let wrapper  = this.sliderWrapper,
 				sceneW = wrapper.getBoundingClientRect().width;
 
 			let itemWidth = sceneW / this.SETTINGS.visible;
@@ -172,7 +231,7 @@
 			console.log(`%cEach item width.....${itemWidth}`, "color: #7C7C7C")
 		}
 		Slider.prototype.showArrows = function(){
-			let scene  = document.querySelector('#sliderHere'),
+			let scene  = this.sliderMain,
 				arrowPrev = document.createElement("div"),
 				arrowNext = document.createElement("div");
 
@@ -226,7 +285,7 @@
 			let arrowPrev = document.querySelector('.arrow-prev'),
 				arrowNext = document.querySelector('.arrow-next'),
 				swipeW = this.swipeWidth,
-				scene = document.querySelector('#sliderWrapper');
+				scene = this.sliderWrapper;
 
 			if(this.lastActiveIndex === this.SETTINGS.visible) return
 			this.lastActiveIndex -= 1;
@@ -234,12 +293,13 @@
 			scene.style.transform = `translateX(${this.swipePosition}px)`;
 
 			this.SETTINGS.arrows ? this.arrowsStatus() : "";
+			this.SETTINGS.dots ? this.dotsStatus() : "";
 		}
 		Slider.prototype.nextSlide = function(){
 			let arrowPrev = document.querySelector('.arrow-prev'),
 				arrowNext = document.querySelector('.arrow-next'),
 				swipeW = this.swipeWidth,
-				scene = document.querySelector('#sliderWrapper');
+				scene = this.sliderWrapper;
 				
 			if(this.slidesLength === this.SETTINGS.visible) return
 			if(this.slidesLength === this.lastActiveIndex) return
@@ -248,6 +308,7 @@
 			scene.style.transform = `translateX(${this.swipePosition}px)`;
 
 			this.SETTINGS.arrows ? this.arrowsStatus() : "";
+			this.SETTINGS.dots ? this.dotsStatus() : "";
 		}
 		Slider.prototype.addArrowsFunctionality = function(){
 			let arrowPrev = document.querySelector('.arrow-prev'),
@@ -272,9 +333,52 @@
 				document.querySelector('.arrow-prev').classList.remove('disabled');
 			}
 		}
+		Slider.prototype.showDots = function(){
+			let slider = this.sliderMain,
+				dotsBlock = document.createElement("div");
+
+			dotsBlock.classList.add('dots-block');
+
+			this.dotsLength = 1 + this.slidesLength - this.SETTINGS.visible;
+
+			let dotsMap = new Map();
+
+			function lastIndexCounter(lastActIndex){
+				let lastI = lastActIndex;
+				return function(currentDott){
+					dotsMap.set(lastI, currentDott);
+					lastI += 1;
+				}
+			}
+			let countDottIndex = lastIndexCounter(this.lastActiveIndex);
+
+			for(let i=0; i <this.dotsLength; i++){
+				let dott = document.createElement("span");
+					dott.classList.add('dott-item');
+				
+				dotsBlock.prepend(dott)
+				countDottIndex(i)
+			}
+
+			this.dottIndexes = dotsMap;
+
+			slider.append(dotsBlock);
+			this.dotsStatus();
+		}
+		Slider.prototype.dotsStatus = function(){
+			let dotts = document.querySelectorAll('.dott-item');
+			dotts.forEach((item, index) => {
+				let dottIndex = this.dottIndexes.get(this.lastActiveIndex);
+
+				item.classList.remove('active');
+				if(dottIndex === index){
+					item.classList.add('active')
+				}
+			})
+		}
 		Slider.prototype.scrollSwipeInit = function(){
 			let swipeW = this.swipeWidth,
-				scene = document.querySelector('#sliderWrapper');
+				scene = this.sliderWrapper;
 
 				scene.addEventListener('mouseenter', addScrollListener);
 				scene.addEventListener('mouseleave', removeScrollListener);
